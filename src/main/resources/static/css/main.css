@@ -1,0 +1,119 @@
+body{
+    height: 100vh;
+    padding: 10px;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+}
+
+.section {
+    position: static; display: block; overflow: visible;
+    -o-object-fit: fill;
+    object-fit: fill;
+}
+.container-4 {
+    position: absolute;
+    left: 0%;
+    top: 0%;
+    right: 0%;
+    bottom: 0%;
+    height: auto;
+    text-align: left;
+    -o-object-fit: fill;
+    object-fit: fill;
+}
+.div-block-2 {
+    display: block;
+    overflow: visible;
+    width: 400px;
+    height: 300px;
+    margin: 200px auto auto;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #dcddf8;
+    border-radius: 20px;
+    background-color: #f6f6ff;
+    box-shadow: 0 3px 5px 0 rgba(7, 11, 255, 0.2);
+    outline-color: #333;
+    outline-offset: 0px;
+    outline-style: none;
+    outline-width: 3px;
+    text-align: center;
+    background-clip: border-box;
+    -webkit-text-fill-color: inherit;
+    mix-blend-mode: normal;
+}
+
+.div-block-error {
+    display: block;
+    overflow: visible;
+    padding: 0 2em;
+    width: 650px;
+    height: 300px;
+    margin: 250px auto auto;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #dcddf8;
+    border-radius: 20px;
+    background-color: #f6f6ff;
+    box-shadow: 0 3px 5px 0 rgba(7, 11, 255, 0.2);
+    outline-color: #333;
+    outline-offset: 0px;
+    outline-style: none;
+    outline-width: 3px;
+    text-align: center;
+    background-clip: border-box;
+    -webkit-text-fill-color: inherit;
+    mix-blend-mode: normal;
+}
+
+.heading {
+    margin: 20px 20px 20px;
+    padding-top: 0px;
+    color: #6b72ff;
+    text-align: center;
+}
+
+.spark-button {
+    position: static;
+    width: 100px;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 10px 16px;
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    flex: 0 auto;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    line-height: 1em;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 1px none #5532fa;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+}
+
+.spark-button:hover {
+    background: linear-gradient(-135deg, #71b7e6, #9b59b6);
+}
+@media screen and (max-width: 991px) {
+    .container-2 {
+        max-width: 728px;
+    }
+}
+
+@media screen and (max-width: 479px) {
+    .container-2 {
+        max-width: none;
+    }
+}
+
+.one-row-element {
+    display: inline-block;
+}

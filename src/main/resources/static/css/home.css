@@ -1,0 +1,318 @@
+body{
+    height: 100vh;
+}
+
+.navbar-color {
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+}
+
+.shadow-custom {
+    padding: 0px;
+    box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.5);
+}
+
+.section {
+    display: block; overflow: visible;
+    -o-object-fit: fill;
+    object-fit: fill;
+
+}
+
+.container.custom-width {
+    max-width: 400px; /* Override the max-width property for the form on this specific page */
+}
+
+.container{
+    margin-top: 30px;
+    width: 100%;
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+    max-width: 720px;
+}
+
+.container .title{
+    font-size: 25px;
+    font-weight: 500;
+    position: relative;
+}
+.container .title::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 30px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+}
+.content {
+    justify-content: center;
+}
+
+.content form .user-details{
+    margin: 20px 0 12px 0;
+}
+form .user-details .input-box{
+    margin-bottom: 15px;
+}
+form .input-box span.details{
+    /*display: block;*/
+    font-weight: 500;
+    margin-bottom: 5px;
+    width: 200px;
+}
+.user-details .input-box input{
+    height: 45px;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 5px;
+    padding-left: 15px;
+    border: 1px solid #ccc;
+    border-bottom-width: 2px;
+    transition: all 0.3s ease;
+}
+.user-details .input-box select{
+    height: 45px;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 5px;
+    padding-left: 15px;
+    border: 1px solid #ccc;
+    border-bottom-width: 2px;
+    transition: all 0.3s ease;
+}
+.user-details .input-box input:focus,
+.user-details .input-box input:valid{
+    border-color: #9b59b6;
+}
+
+.user-details .input-box textarea{
+
+    outline: none;
+    font-size: 16px;
+    border-radius: 5px;
+    padding-left: 15px;
+    border: 1px solid #ccc;
+    border-bottom-width: 2px;
+    transition: all 0.3s ease;
+}
+.user-details .input-box textarea:focus,
+.user-details .input-box textarea:valid{
+    border-color: #9b59b6;
+}
+form .button{
+    height: 45px;
+    margin: 20px 0
+}
+form .button input{
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+}
+form .button input:hover{
+    /* transform: scale(0.99); */
+    background: linear-gradient(-135deg, #71b7e6, #9b59b6);
+}
+@media(max-width: 584px){
+    .container{
+        max-width: 100%;
+    }
+    form .user-details .input-box{
+        margin-bottom: 15px;
+    }
+    form .category{
+        width: 100%;
+    }
+    .content form .user-details{
+        max-height: 300px;
+        overflow-y: scroll;
+    }
+    .user-details::-webkit-scrollbar{
+        width: 5px;
+    }
+}
+@media(max-width: 459px){
+    .container .content .category{
+        flex-direction: column;
+    }
+}
+/*.container-4 {*/
+/*    position: absolute;*/
+/*    left: 0%;*/
+/*    top: 0%;*/
+/*    right: 0%;*/
+/*    bottom: 0%;*/
+/*    height: auto;*/
+/*    text-align: left;*/
+/*    -o-object-fit: fill;*/
+/*    object-fit: fill;*/
+/*}*/
+
+.navbar-custom-size {
+    font-size: larger;
+}
+
+.topnav {
+    float: left;
+    text-align: center;
+
+}
+
+.topnav-right {
+    float: right;
+}
+
+.paint-card {
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+}
+
+.my-cell {
+    max-width: 200px;
+}
+
+.one-row-col {
+    white-space: nowrap;
+}
+
+.text-color {
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.required::after {
+    content: "*";
+    color: red;
+    font-size: 20px;
+}
+
+form .category{
+    display: flex;
+    width: 80%;
+    margin: 14px 0 ;
+    justify-content: space-between;
+}
+form .category label{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+form .category label .dot{
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background: #d9d9d9;
+    border: 5px solid transparent;
+    transition: all 0.3s ease;
+}
+#dot-1:checked ~ .category label .one,
+#dot-2:checked ~ .category label .two,
+#dot-3:checked ~ .category label .three{
+    background: #9b59b6;
+    border-color: #d9d9d9;
+}
+form input[type="radio"]{
+    display: none;
+}
+
+*:disabled {
+    background-color: dimgrey;
+    color: linen;
+    opacity: 1;
+}
+
+.my-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.my-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: 150px;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.3);
+    border-top: 4px solid #000;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.my-p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.custom-button-one-col {
+    justify-content: center;
+    display: grid;
+}
+
+.disabled-button {
+    opacity: 0.5;  /* You can adjust the opacity to your preference */
+    pointer-events: none;  /* Prevents clicking on the button */
+    /* Add any other styles you want to make the button look visually disabled */
+}
+
+.custom-card {
+    margin: 40px;
+    max-width: 320px;
+}
+
+.custom-card-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.greeting {
+    text-align: center;
+    margin-top: 70px;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Bitter', sans-serif;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+    -webkit-background-clip: text; /* Apply gradient to the text */
+    color: transparent; /* Set text color to transparent */
+}
+
+.custom-feedback-width{
+    max-width: 500px;
+}
+
