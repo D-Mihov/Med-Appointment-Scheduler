@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HealthSync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <script type="text/javascript" src="/js/jquery-3.5.1.slim.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+<header th:replace="/fragments/commons::nav"></header>
+
+<div class="section wf-section">
+    <div class="container-fluid p-3">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card paint-card">
+                    <div class="card-body">
+                        <p class="fs-3 text-center" th:text="#{patients.title}">Patients</p>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th class="one-row-col" scope="col" th:text="#{patients.fullname}">Full Name</th>
+                                <th scope="col" th:text="#{patients.email}">Email</th>
+                                <th scope="col" th:text="#{patients.phone}">Phone</th>
+                                <th scope="col" th:text="#{patients.birthdate}">Date Of Birth</th>
+                                <th scope="col" th:text="#{patients.gender}">Gender</th>
+                                <th scope="col" th:text="#{patients.medhistory}">Medical History</th>
+                                <th scope="col" th:text="#{patients.actions}">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                            <tr th:each="patient : ${patients}">
+                                <td class="one-row-col" th:text="${patient.fullName}"></td>
+                                <td th:text="${patient.email}"></td>
+                                <td th:text="${patient.phone}"></td>
+                                <td th:text="${#dates.format(patient.dateOfBirth, 'dd/MM/yyyy')}"></td>
+                                <td th:text="${patient.gender}"></td>
+                                <td style="max-width: 400px" th:text="${patient.medicalHistory}"></td>
+                                <td>
+                                    <div style="display: grid; justify-content: center;">
+                                    <a class="btn btn-primary" style="margin-bottom: 10px" th:href="@{/patients/{id}/edit(id=${patient.id})}" th:text="#{patients.button.update}">Update</a>
+                                    <a class="btn btn-danger" th:href="@{/patients/delete(id=${patient.id})}" th:text="#{patients.button.delete}" onclick="return confirm('Are you sure you want to delete this patient?')">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="fragments/commons.html::footerx(textColor='text-color')"></footer>
+</body>
+</html>

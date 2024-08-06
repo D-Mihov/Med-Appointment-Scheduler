@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HealthSync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <script type="text/javascript" src="/js/jquery-3.5.1.slim.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+<header th:replace="/fragments/commons::nav"></header>
+<section>
+    <div class="container custom-feedback-width">
+        <div class="title" th:text="#{feedback.title}">Feedback</div>
+        <div class="content">
+            <form th:action="@{/appointments/feedback}" method="post" th:object="${feedbackModel}">
+                <div class="user-details">
+                <div class="input-box">
+                    <span class="details" th:text="#{feedback.comment}">Comment<span class="required"></span></span>
+                    <span class="required"></span>
+                    <textarea rows="3" cols="55" th:field="*{comment}"
+                              th:disabled="${(feedbackModel.comment != null and feedbackModel.comment != '' and feedbackModel.rating != null and feedbackModel.rating != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''DOCTOR'')')}"
+                              th:value="${feedbackModel.comment}"></textarea>
+                    <small class="text-danger" th:errors="*{comment}"></small>
+                </div>
+                <div class="input-box">
+                    <span class="details" th:text="#{feedback.rating}">Rating<span class="required"></span></span>
+                    <span class="required"></span>
+                    <select id="rating" th:field="*{rating}"
+                            th:disabled="${(feedbackModel.rating != null and feedbackModel.rating != '' and feedbackModel.comment != null and feedbackModel.comment != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''DOCTOR'')')}"
+                            th:value="${feedbackModel.rating}">
+                        <option value="" th:text="#{feedback.select}">Select rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                    <small class="text-danger" th:errors="*{rating}"></small>
+                </div>
+                <input type="hidden" name="appointmentId" th:value="${param.appointmentId}">
+                <input type="hidden" name="doctorId" th:value="${param.doctorId}">
+                <input type="hidden" name="patientId" th:value="${param.patientId}">
+
+                <div class="button" th:unless="${(feedbackModel.rating != null and feedbackModel.rating != '' and feedbackModel.comment != null and feedbackModel.comment != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''DOCTOR'')')}">
+                    <input type="submit" th:value="#{feedback.button}">
+                </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="fragments/commons.html::footerx(textColor='text-color')"></footer>
+</section>
+</body>
+</html>

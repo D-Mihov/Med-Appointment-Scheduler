@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HealthSync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+<body>
+<div class="section wf-section">
+    <div class="container-4 w-container">
+        <div class="div-block-2">
+            <img
+                    src="/img/logo-removebg-preview.png"
+                    height="120"
+                    alt="HealthSync"
+                    loading="lazy"
+                    style="margin-top: 10px;margin-bottom: 30px"
+            /><br>
+            <h6 class="one-row-element" style="color: #6b72ff;" th:text="#{home.unauthenticated.lang}">Language: </h6>
+            <a class="one-row-element" th:href="@{'?lang=en'}">
+                <img src="/img/gb.png" alt="en">
+            </a>
+            <h5 class="one-row-element" style="margin-top: 0px; margin-bottom: 0px">|</h5>
+            <a class="one-row-element" th:href="@{'?lang=bg'}">
+                <img src="/img/bg.png" alt="bg">
+            </a><br>
+            <div style="margin-top: 30px">
+            <a th:href="@{/login}" class="spark-button w-button" th:text="#{home.unauthenticated.login}">Login</a>
+            <a th:href="@{/signup}" class="spark-button w-button" th:text="#{home.unauthenticated.signup}">Sign Up</a>
+            </div>
+        </div>
+        <footer th:replace="fragments/commons.html::footerx(textColor='text-white')"></footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N"
+        crossorigin="anonymous"></script>
+</body>
+</html>
