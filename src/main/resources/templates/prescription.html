@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HealthSync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <script type="text/javascript" src="/js/jquery-3.5.1.slim.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+<header th:replace="/fragments/commons::nav"></header>
+<section>
+    <div class="container custom-feedback-width">
+        <div class="title" th:text="#{prescription.title}">Prescription</div>
+        <div class="content">
+            <form th:action="@{/appointments/prescription}" method="post" th:object="${prescription}">
+                <div class="user-details">
+                    <div class="input-box">
+                        <span class="details" th:text="#{prescription.medication}">Medication<<span class="required"></span></span>
+                        <span class="required"></span>
+                        <textarea rows="6" cols="55" th:field="*{medication}"
+                                  th:disabled="${(prescription.medication != null and prescription.medication != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''PATIENT'')')}"
+                                  th:value="${prescription.medication}"></textarea>
+                        <small class="text-danger" th:errors="*{medication}"></small>
+                    </div>
+                    <input type="hidden" name="appointmentId" th:value="${param.appointmentId}">
+                    <input type="hidden" name="doctorId" th:value="${param.doctorId}">
+                    <input type="hidden" name="patientId" th:value="${param.patientId}">
+
+                    <div class="button" th:unless="${(prescription.medication != null and prescription.medication != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''PATIENT'')')}">
+                        <input type="submit" th:value="#{prescription.button}">
+                    </div>
+                </div>
+            </form>
+
+            <div class="button" th:if="${(prescription.medication != null and prescription.medication != '') or #authorization.expression('hasAnyRole(''ADMIN'', ''PATIENT'')')}">
+                <a class="btn btn-danger" style="display: block"
+                   th:href="@{/appointments/prescription/delete(appointmentId=${param.appointmentId},patientId=${param.patientId})}"
+                   sec:authorize="hasRole('DOCTOR')"
+                   th:text="#{prescription.button.delete}"
+                   th:attr="onclick='return confirm(\'' + #{prescription.confirmation.delete} + '\')'">Delete</a>
+            </div>
+
+        </div>
+    </div>
+    <footer th:replace="fragments/commons.html::footerx(textColor='text-color')"></footer>
+</section>
+</body>
+</html>
