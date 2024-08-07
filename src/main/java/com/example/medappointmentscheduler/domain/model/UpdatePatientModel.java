@@ -1,6 +1,7 @@
 package com.example.medappointmentscheduler.domain.model;
 
 import com.example.medappointmentscheduler.utils.Validation.ValidEmail;
+import com.example.medappointmentscheduler.utils.Validation.ValidEmailAddAppointment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -20,7 +21,7 @@ public class UpdatePatientModel {
     private String firstName;
     @NotBlank(message = "{signup.form.lastName.notEmpty}")
     private String lastName;
-    @ValidEmail
+    @ValidEmailAddAppointment
     private String email;
     @NotBlank(message = "{signup.form.phone.notEmpty}")
     @Pattern(regexp="(^$|[0-9]{10})", message = "{signup.form.phone.invalid}")

@@ -1,6 +1,7 @@
 package com.example.medappointmentscheduler.web;
 
 import com.example.medappointmentscheduler.domain.model.SignupDoctorModel;
+import com.example.medappointmentscheduler.error.exceptions.CustomServerException;
 import com.example.medappointmentscheduler.service.DoctorService;
 import com.example.medappointmentscheduler.service.UserService;
 import jakarta.validation.Valid;
@@ -26,7 +27,6 @@ public class RegistrationDocController {
     @GetMapping("/signupDoctor")
     public String prepareSignupDoc(Model model) {
         SignupDoctorModel signupDoctorModel = new SignupDoctorModel();
-
         model.addAttribute("signupDoctorModel", signupDoctorModel);
 
         return "signupDoc";
@@ -35,7 +35,6 @@ public class RegistrationDocController {
 
     @PostMapping("/signupDoctor")
     public String signup(@ModelAttribute("signupDoctorModel") @Valid SignupDoctorModel signupDoctorModel, BindingResult bindingResult, Model model) {
-        signupDoctorModel.setUserRole("DOCTOR");
 
         if (!signupDoctorModel.getPassword().equals(signupDoctorModel.getConfirmPassword())) {
             bindingResult.rejectValue("password", "form.password.nomatch");
@@ -46,8 +45,13 @@ public class RegistrationDocController {
             return "signupDoc";
         }
 
-        this.userService.createDoctorUser(signupDoctorModel);
-        this.doctorService.createDoctor(signupDoctorModel);
+        try {
+            signupDoctorModel.setUserRole("DOCTOR");
+            userService.createDoctorUser(signupDoctorModel);
+            doctorService.createDoctor(signupDoctorModel);
+        } catch (Exception e) {
+            throw new CustomServerException("Error during doctor registration process.");
+        }
 
         return "redirect:/";
     }

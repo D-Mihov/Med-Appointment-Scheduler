@@ -3,10 +3,12 @@ package com.example.medappointmentscheduler.service.impl;
 import com.example.medappointmentscheduler.domain.entity.Doctor;
 import com.example.medappointmentscheduler.domain.entity.User;
 import com.example.medappointmentscheduler.domain.model.SignupDoctorModel;
+import com.example.medappointmentscheduler.error.exceptions.ObjectNotFoundException;
 import com.example.medappointmentscheduler.repository.DoctorRepository;
 import com.example.medappointmentscheduler.repository.UserRepository;
 import com.example.medappointmentscheduler.service.DoctorService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.example.medappointmentscheduler.service.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -17,10 +19,14 @@ import java.util.Optional;
 public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
+    private final UserService userService;
 
-    public DoctorServiceImpl(DoctorRepository doctorRepository, UserRepository userRepository) {
+    public DoctorServiceImpl(DoctorRepository doctorRepository, UserRepository userRepository, ModelMapper modelMapper, UserService userService) {
         this.doctorRepository = doctorRepository;
         this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+        this.userService = userService;
     }
 
     @Override
@@ -30,37 +36,38 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor getDoctorById(Long id) {
-        return doctorRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Doctor with ID: " + id + " not found!"));
+        return doctorRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException("Doctor with ID " + id + " not found!"));
     }
 
     @Override
     public Doctor createDoctor(SignupDoctorModel doctorDTO) {
+        Optional<User> user = userRepository.findByEmail(doctorDTO.getEmail());
+
+        if (user.isEmpty()) {
+            throw new ObjectNotFoundException("User with email " + doctorDTO.getEmail() + " not found!");
+        }
+
         Doctor doctor = new Doctor();
         SetDoctorDetails(doctorDTO, doctor);
         doctor.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         doctor.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-
-        Optional<User> user = userRepository.findByEmail(doctorDTO.getEmail());
-
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("Doctor " + doctorDTO.getEmail() + " not found!");
-        }
-
-        User userEntity = user.get();
-
-        doctor.setUser(userEntity);
+        doctor.setUser(user.get());
 
         return doctorRepository.save(doctor);
     }
 
     @Override
     public Doctor updateDoctor(Long id, SignupDoctorModel doctorDTO) {
-        Doctor doctor = getDoctorById(id);
-        SetDoctorDetails(doctorDTO, doctor);
-        doctor.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        Doctor existingDoctor = getDoctorById(id);
 
-        return doctorRepository.save(doctor);
+        if (!(userService.getUserByEmail(existingDoctor.getEmail()).getEmail().equals(doctorDTO.getEmail()))) {
+            userService.updateUserEmail(existingDoctor.getEmail(), doctorDTO.getEmail());
+        }
+
+        SetDoctorDetails(doctorDTO, existingDoctor);
+        existingDoctor.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        return doctorRepository.save(existingDoctor);
     }
 
 
@@ -72,7 +79,8 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor getDoctorByEmail(String email) {
-        return doctorRepository.findByEmail(email).orElse(null);
+        return doctorRepository.findByEmail(email)
+                        .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + email + " not found!"));
     }
 
     private void SetDoctorDetails(SignupDoctorModel doctorDTO, Doctor doctor) {

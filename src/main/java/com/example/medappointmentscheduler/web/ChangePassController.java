@@ -1,6 +1,7 @@
 package com.example.medappointmentscheduler.web;
 
 import com.example.medappointmentscheduler.domain.model.ChangePasswordModel;
+import com.example.medappointmentscheduler.error.exceptions.CustomServerException;
 import com.example.medappointmentscheduler.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -26,9 +27,7 @@ public class ChangePassController {
     @GetMapping("/changePassword")
     public String changePass(Model model) {
         ChangePasswordModel changePasswordModel = new ChangePasswordModel();
-
         model.addAttribute("changePasswordModel", changePasswordModel);
-
         return "changePassword";
     }
 
@@ -49,14 +48,18 @@ public class ChangePassController {
         }
 
         String email = principal.getName();
-        boolean isPasswordChanged = userService.changePassword(email, changePasswordModel.getOldPassword(),
-                changePasswordModel.getNewPassword());
+        try {
+            boolean isPasswordChanged = userService.changePassword(email, changePasswordModel.getOldPassword(),
+                    changePasswordModel.getNewPassword());
 
-        if (isPasswordChanged) {
-            return "redirect:/homeAuth";
-        } else {
-            bindingResult.rejectValue("oldPassword", "form.password.invalid");
-            return "changePassword";
+            if (isPasswordChanged) {
+                return "redirect:/";
+            } else {
+                bindingResult.rejectValue("oldPassword", "form.password.invalid");
+                return "changePassword";
+            }
+        } catch (Exception e) {
+            throw new CustomServerException("An unexpected error occurred while changing your password.");
         }
     }
 }

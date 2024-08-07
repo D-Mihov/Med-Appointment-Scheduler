@@ -4,10 +4,12 @@ import com.example.medappointmentscheduler.domain.entity.Appointment;
 import com.example.medappointmentscheduler.domain.entity.Feedback;
 import com.example.medappointmentscheduler.domain.entity.Patient;
 import com.example.medappointmentscheduler.domain.model.FeedbackModel;
+import com.example.medappointmentscheduler.error.exceptions.CustomServerException;
 import com.example.medappointmentscheduler.service.AppointmentService;
 import com.example.medappointmentscheduler.service.FeedbackService;
 import com.example.medappointmentscheduler.service.PatientService;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,11 +24,13 @@ public class FeedbackController {
     private final FeedbackService feedbackService;
     private final AppointmentService appointmentService;
     private final PatientService patientService;
+    private final ModelMapper modelMapper;
 
-    public FeedbackController(FeedbackService feedbackService, AppointmentService appointmentService, PatientService patientService) {
+    public FeedbackController(FeedbackService feedbackService, AppointmentService appointmentService, PatientService patientService, ModelMapper modelMapper) {
         this.feedbackService = feedbackService;
         this.appointmentService = appointmentService;
         this.patientService = patientService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/appointments/feedback")
@@ -39,11 +43,8 @@ public class FeedbackController {
 
         Feedback feedback = feedbackService.getFeedbackByPatientAndAppointment(patient, appointment);
 
-        FeedbackModel feedbackModel = new FeedbackModel();
-        if (feedback != null) {
-            feedbackModel.setComment(feedback.getComment());
-            feedbackModel.setRating(String.valueOf(feedback.getRating()));
-        }
+        FeedbackModel feedbackModel = feedback != null ? modelMapper.map(feedback, FeedbackModel.class) : new FeedbackModel();
+
         model.addAttribute("feedbackModel", feedbackModel);
 
         return "feedback";
@@ -64,7 +65,12 @@ public class FeedbackController {
         feedbackModel.setDoctorId(doctorId);
         feedbackModel.setPatientId(patientId);
         feedbackModel.setAppointmentId(appointmentId);
-        feedbackService.createFeedback(feedbackModel);
+
+        try {
+            feedbackService.createFeedback(feedbackModel);
+        } catch (Exception e) {
+            throw new CustomServerException("An error occurred while submitting feedback.");
+        }
 
         return "redirect:/appointments";
     }

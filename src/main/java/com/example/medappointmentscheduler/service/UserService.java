@@ -17,7 +17,9 @@ public interface UserService {
 
     void updateUser(SignupModel signupModel);
 
-    public void initAdmin();
+    void initAdmin();
 
     boolean changePassword(String email, String oldPassword, String newPassword);
+
+    void updateUserEmail(String oldEmail, String email);
 }

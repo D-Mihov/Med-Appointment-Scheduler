@@ -1,6 +1,7 @@
 package com.example.medappointmentscheduler.domain.model;
 
 import com.example.medappointmentscheduler.utils.Validation.ValidEmail;
+import com.example.medappointmentscheduler.utils.Validation.ValidEmailAddAppointment;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,7 +17,7 @@ import java.time.LocalTime;
 public class AddAppointmentModel {
     @NotBlank(message = "{addappointment.patientFullName.notEmpty}")
     private String patientFullName;
-    @ValidEmail
+    @ValidEmailAddAppointment
     private String patientEmail;
     @NotNull(message = "{addappointment.doctorId.notEmpty}")
     private Long doctorId;

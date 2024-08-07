@@ -2,6 +2,8 @@ package com.example.medappointmentscheduler.web;
 
 import com.example.medappointmentscheduler.domain.entity.Doctor;
 import com.example.medappointmentscheduler.domain.model.AddAppointmentModel;
+import com.example.medappointmentscheduler.error.exceptions.CustomServerException;
+import com.example.medappointmentscheduler.error.exceptions.ObjectNotFoundException;
 import com.example.medappointmentscheduler.service.AppointmentService;
 import com.example.medappointmentscheduler.service.DoctorService;
 import jakarta.validation.Valid;
@@ -28,12 +30,13 @@ public class AddAppointmentController {
 
     @GetMapping("/add-appointment")
     public String prepareAddAppointment(Model model) {
-        AddAppointmentModel addAppointmentModel = new AddAppointmentModel();
-        List<Doctor> doctors = doctorService.getAllDoctors();
-
-        model.addAttribute("doctors", doctors);
-        model.addAttribute("addAppointmentModel", addAppointmentModel);
-
+        try {
+            List<Doctor> doctors = doctorService.getAllDoctors();
+            model.addAttribute("doctors", doctors);
+        } catch (Exception e) {
+            throw new CustomServerException("An error occurred while fetching doctors.");
+        }
+        model.addAttribute("addAppointmentModel", new AddAppointmentModel());
         return "add-appointment";
     }
 
@@ -46,26 +49,30 @@ public class AddAppointmentController {
 
         addAppointmentModel.setStatus("Scheduled");
 
-        String validAppointment = appointmentService.isValidAppointment(addAppointmentModel);
+        try {
+            String validAppointmentMessage = appointmentService.isValidAppointment(addAppointmentModel);
 
-        if (!validAppointment.equals("")) {
-            bindingResult.rejectValue("appointmentDate", null, validAppointment);
+            if (!validAppointmentMessage.isEmpty()) {
+                bindingResult.rejectValue("appointmentDate", null, validAppointmentMessage);
+                attachAttributesToModel(model, addAppointmentModel);
+                return "add-appointment";
+            }
+
+            appointmentService.createAppointment(addAppointmentModel);
+        } catch (Exception e) {
+            throw new CustomServerException("An error occurred while creating the appointment.");
         }
-
-        if (bindingResult.hasErrors()) {
-            attachAttributesToModel(model, addAppointmentModel);
-            return "add-appointment";
-        }
-
-        appointmentService.createAppointment(addAppointmentModel);
 
         return "redirect:/";
     }
 
     private void attachAttributesToModel(Model model, @ModelAttribute("addAppointmentModel") @Valid AddAppointmentModel addAppointmentModel) {
-        List<Doctor> doctors = doctorService.getAllDoctors();
-
-        model.addAttribute("doctors", doctors);
+        try {
+            List<Doctor> doctors = doctorService.getAllDoctors();
+            model.addAttribute("doctors", doctors);
+        } catch (Exception e) {
+            throw new CustomServerException("An error occurred while preparing the model.");
+        }
         addAppointmentModel.setDoctorId(null);
         addAppointmentModel.setAppointmentDate(null);
         model.addAttribute("addAppointmentModel", addAppointmentModel);

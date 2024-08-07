@@ -1,6 +1,7 @@
 package com.example.medappointmentscheduler.web;
 
 import com.example.medappointmentscheduler.domain.model.SignupModel;
+import com.example.medappointmentscheduler.error.exceptions.CustomServerException;
 import com.example.medappointmentscheduler.service.PatientService;
 import com.example.medappointmentscheduler.service.UserService;
 import jakarta.validation.Valid;
@@ -25,7 +26,6 @@ public class RegistrationController {
     @GetMapping("/signup")
     public String prepareSignup(Model model) {
         SignupModel signupModel = new SignupModel();
-
         model.addAttribute("signupModel", signupModel);
 
         return "signup";
@@ -33,7 +33,6 @@ public class RegistrationController {
 
     @PostMapping("/signup")
     public String signup(@ModelAttribute("signupModel") @Valid SignupModel signupModel, BindingResult bindingResult, Model model) {
-        signupModel.setUserRole("PATIENT");
 
         if (!signupModel.getPassword().equals(signupModel.getConfirmPassword())) {
             bindingResult.rejectValue("password", "form.password.nomatch");
@@ -44,9 +43,14 @@ public class RegistrationController {
             return "signup";
         }
 
-        this.userService.createPatientUser(signupModel);
-        this.patientService.createPatient(signupModel);
+        try {
+            signupModel.setUserRole("PATIENT");
+            userService.createPatientUser(signupModel);
+            patientService.createPatient(signupModel);
+        } catch (Exception e) {
+            throw new CustomServerException("Error during registration process.");
+        }
 
-        return "redirect:/";
+        return "redirect:/login";
     }
 }

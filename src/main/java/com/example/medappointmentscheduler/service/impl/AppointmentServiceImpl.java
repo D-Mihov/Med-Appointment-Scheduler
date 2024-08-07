@@ -6,13 +6,14 @@ import com.example.medappointmentscheduler.domain.entity.Feedback;
 import com.example.medappointmentscheduler.domain.entity.Patient;
 import com.example.medappointmentscheduler.domain.entity.enums.AppointmentStatusEnum;
 import com.example.medappointmentscheduler.domain.model.AddAppointmentModel;
+import com.example.medappointmentscheduler.error.exceptions.ObjectNotFoundException;
 import com.example.medappointmentscheduler.repository.AppointmentRepository;
 import com.example.medappointmentscheduler.repository.DoctorRepository;
 import com.example.medappointmentscheduler.repository.FeedbackRepository;
 import com.example.medappointmentscheduler.repository.PatientRepository;
 import com.example.medappointmentscheduler.service.AppointmentService;
 import com.example.medappointmentscheduler.service.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
@@ -27,7 +28,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -37,14 +37,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final FeedbackRepository feedbackRepository;
     private final MessageSource messageSource;
     private final EmailService emailService;
+    private final ModelMapper modelMapper;
 
-    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, PatientRepository patientRepository, DoctorRepository doctorRepository, FeedbackRepository feedbackRepository, MessageSource messageSource, EmailService emailService) {
+    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, PatientRepository patientRepository, DoctorRepository doctorRepository, FeedbackRepository feedbackRepository, MessageSource messageSource, EmailService emailService, ModelMapper modelMapper) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.feedbackRepository = feedbackRepository;
         this.messageSource = messageSource;
         this.emailService = emailService;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -55,31 +57,32 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment getAppointmentById(Long id) {
         return appointmentRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Appointment with ID: " + id + " not found!"));
+                .orElseThrow(() -> new ObjectNotFoundException("Appointment with ID " + id + " not found!"));
     }
 
     @Override
     public Appointment createAppointment(AddAppointmentModel appointmentModel) {
-        Appointment appointment = new Appointment();
-        setAppointmentDetails(appointmentModel, appointment);
-        appointment.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        appointment.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         String patientEmail = authentication.getName();
 
         Patient patient = patientRepository.findByEmail(patientEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Patient " + patientEmail + " not found!"));
-        appointment.setPatient(patient);
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + patientEmail + " not found!"));
 
         Doctor doctor = doctorRepository.findById(appointmentModel.getDoctorId())
-                .orElseThrow(() -> new UsernameNotFoundException("Doctor with ID: " + appointmentModel.getDoctorId() + " not found!"));
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with ID: " + appointmentModel.getDoctorId() + " not found!"));
+
+        Appointment appointment = new Appointment();
+        modelMapper.map(appointmentModel, appointment);
+        appointment.setId(null);
+        appointment.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        appointment.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        appointment.setAppointmentDate(Date.valueOf(appointmentModel.getAppointmentDate()));
+        appointment.setAppointmentHour(Time.valueOf(appointmentModel.getAppointmentHour()));
+        appointment.setPatient(patient);
         appointment.setDoctor(doctor);
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
-
-        emailService.sendAppointmentConfirmationEmail(appointment.getPatientEmail(), savedAppointment);
+        emailService.sendAppointmentConfirmationEmail(patientEmail, savedAppointment);
 
         return savedAppointment;
     }
@@ -127,32 +130,19 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.delete(appointment);
     }
 
-    private void setAppointmentDetails(AddAppointmentModel appointmentModel, Appointment appointment) {
-        appointment.setPatientFullName(appointmentModel.getPatientFullName());
-        appointment.setPatientEmail(appointmentModel.getPatientEmail());
-        appointment.setAppointmentDate(java.sql.Date.valueOf(appointmentModel.getAppointmentDate()));
-        appointment.setAppointmentHour(java.sql.Time.valueOf(appointmentModel.getAppointmentHour()));
-        appointment.setDiseases(appointmentModel.getDiseases());
-        appointment.setStatus(AppointmentStatusEnum.valueOf(appointmentModel.getStatus()));
-        appointment.setNotes(appointmentModel.getNotes());
-    }
-
     @Override
     public List<String> getAvailableHoursForDoctor(Long doctorId, String appointmentDate) {
         LocalDate date = LocalDate.parse(appointmentDate);
-        Optional<Doctor> optDoctor = doctorRepository.findById(doctorId);
-        Doctor doctor = optDoctor.orElse(null);
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with ID " + doctorId + " not found!"));
 
-        List<Appointment> existingAppointments = new ArrayList<>();
-        if (doctor != null) {
-            existingAppointments = appointmentRepository.findByDoctorAndAppointmentDate(doctor, java.sql.Date.valueOf(date));
-        }
+        List<Appointment> existingAppointments = appointmentRepository.findByDoctorAndAppointmentDate(doctor, Date.valueOf(date));
 
         List<String> availableHours = new ArrayList<>();
         for (int hour = 9; hour <= 17; hour++) {
             LocalTime time = LocalTime.of(hour, 0);
 
-            if (!isDoctorBooked(existingAppointments, time)) {
+            if (existingAppointments.stream().noneMatch(appointment -> appointment.getAppointmentHour().equals(Time.valueOf(time)))) {
                 availableHours.add(time.toString());
             }
         }
@@ -160,49 +150,35 @@ public class AppointmentServiceImpl implements AppointmentService {
         return availableHours;
     }
 
-    private boolean isDoctorBooked(List<Appointment> existingAppointments, LocalTime time) {
-        for (Appointment appointment :
-                existingAppointments) {
-            if (appointment.getAppointmentHour().equals(java.sql.Time.valueOf(time))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public List<Appointment> getAppointmentsForDate(LocalDate date, String status) {
-        return appointmentRepository.findByAppointmentDateAndStatus(java.sql.Date.valueOf(date), AppointmentStatusEnum.valueOf(status));
+        return appointmentRepository.findByAppointmentDateAndStatus(Date.valueOf(date), AppointmentStatusEnum.valueOf(status));
     }
 
     public int getAppointmentCountForDoctor(String doctorEmail) {
-        Doctor doctor = doctorRepository.findByEmail(doctorEmail).orElse(null);
-        List<Appointment> appointments = appointmentRepository.findByDoctor(doctor);
-
-        return appointments.size();
+        Doctor doctor = doctorRepository.findByEmail(doctorEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + doctorEmail + " not found!"));
+        return appointmentRepository.countByDoctor(doctor);
     }
 
     @Override
     public int getScheduledAppointmentCountForDoctor(String doctorEmail) {
-        Doctor doctor = doctorRepository.findByEmail(doctorEmail).orElse(null);
-        List<Appointment> scheduledAppointments = appointmentRepository.findByDoctorAndStatus(doctor, AppointmentStatusEnum.Scheduled);
-
-        return scheduledAppointments.size();
+        Doctor doctor = doctorRepository.findByEmail(doctorEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + doctorEmail + " not found!"));
+        return appointmentRepository.countByDoctorAndStatus(doctor, AppointmentStatusEnum.Scheduled);
     }
 
     @Override
     public int getAppointmentCountForPatient(String patientEmail) {
-        Patient patient = patientRepository.findByEmail(patientEmail).orElse(null);
-        List<Appointment> appointments = appointmentRepository.findByPatient(patient);
-
-        return appointments.size();
+        Patient patient = patientRepository.findByEmail(patientEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient with email " + patientEmail + " not found!"));
+        return appointmentRepository.countByPatient(patient);
     }
 
     @Override
     public int getScheduledAppointmentCountForPatient(String patientEmail) {
-        Patient patient = patientRepository.findByEmail(patientEmail).orElse(null);
-        List<Appointment> scheduledAppointments = appointmentRepository.findByPatientAndStatus(patient, AppointmentStatusEnum.Scheduled);
-
-        return scheduledAppointments.size();
+        Patient patient = patientRepository.findByEmail(patientEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient with email " + patientEmail + " not found!"));
+        return appointmentRepository.countByPatientAndStatus(patient, AppointmentStatusEnum.Scheduled);
     }
 
     @Override
@@ -220,11 +196,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentRepository.findByStatus(AppointmentStatusEnum.Canceled).size();
     }
 
+    @Override
     public String isValidAppointment(AddAppointmentModel newAppointment) {
         Date appointmentDate = Date.valueOf(newAppointment.getAppointmentDate());
         Time appointmentTime = Time.valueOf(newAppointment.getAppointmentHour());
-        Doctor doctor = doctorRepository.findById(newAppointment.getDoctorId()).orElse(null);
-        Patient patient = patientRepository.findByEmail(newAppointment.getPatientEmail()).orElse(null);
+        Doctor doctor = doctorRepository.findById(newAppointment.getDoctorId())
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with ID " + newAppointment.getDoctorId() + " not found!"));
+        Patient patient = patientRepository.findByEmail(newAppointment.getPatientEmail())
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + newAppointment.getPatientEmail() + " not found!"));
 
         List<Appointment> appointmentsByDateAndDoctor = appointmentRepository.findByDoctorAndAppointmentDate(doctor, appointmentDate);
 
@@ -249,19 +228,22 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<Appointment> getAppointmentsByDoctor(String loggedInEmail) {
-        Doctor doctor = doctorRepository.findByEmail(loggedInEmail).orElse(null);
+        Doctor doctor = doctorRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + loggedInEmail + " not found!"));
         return appointmentRepository.findByDoctor(doctor);
     }
 
     @Override
     public List<Appointment> getAppointmentsByPatient(String loggedInEmail) {
-        Patient patient = patientRepository.findByEmail(loggedInEmail).orElse(null);
+        Patient patient = patientRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + loggedInEmail + " not found!"));
         return appointmentRepository.findByPatient(patient);
     }
 
     @Override
     public int getCompletedAppointmentCountForDoctor(String loggedInEmail) {
-        Doctor doctor = doctorRepository.findByEmail(loggedInEmail).orElse(null);
+        Doctor doctor = doctorRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + loggedInEmail + " not found!"));
         List<Appointment> scheduledAppointments = appointmentRepository.findByDoctorAndStatus(doctor, AppointmentStatusEnum.Completed);
 
         return scheduledAppointments.size();
@@ -269,7 +251,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public int getCanceledAppointmentCountForDoctor(String loggedInEmail) {
-        Doctor doctor = doctorRepository.findByEmail(loggedInEmail).orElse(null);
+        Doctor doctor = doctorRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + loggedInEmail + " not found!"));
         List<Appointment> scheduledAppointments = appointmentRepository.findByDoctorAndStatus(doctor, AppointmentStatusEnum.Canceled);
 
         return scheduledAppointments.size();
@@ -277,7 +260,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public int getCompletedAppointmentCountForPatient(String loggedInEmail) {
-        Patient patient = patientRepository.findByEmail(loggedInEmail).orElse(null);
+        Patient patient = patientRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + loggedInEmail + " not found!"));
         List<Appointment> scheduledAppointments = appointmentRepository.findByPatientAndStatus(patient, AppointmentStatusEnum.Completed);
 
         return scheduledAppointments.size();
@@ -285,7 +269,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public int getCanceledAppointmentCountForPatient(String loggedInEmail) {
-        Patient patient = patientRepository.findByEmail(loggedInEmail).orElse(null);
+        Patient patient = patientRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + loggedInEmail + " not found!"));
         List<Appointment> scheduledAppointments = appointmentRepository.findByPatientAndStatus(patient, AppointmentStatusEnum.Canceled);
 
         return scheduledAppointments.size();
@@ -298,7 +283,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public int getFeedbacksCountForPatient(String loggedInEmail) {
-        Patient patient = patientRepository.findByEmail(loggedInEmail).orElse(null);
+        Patient patient = patientRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Patient with email " + loggedInEmail + " not found!"));
         List<Feedback> feedbacks = feedbackRepository.findByPatient(patient);
 
         return feedbacks.size();
@@ -306,7 +292,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public int getFeedbacksCountForDoctor(String loggedInEmail) {
-        Doctor doctor = doctorRepository.findByEmail(loggedInEmail).orElse(null);
+        Doctor doctor = doctorRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("Doctor with email " + loggedInEmail + " not found!"));
         List<Feedback> feedbacks = feedbackRepository.findByDoctor(doctor);
 
         return feedbacks.size();

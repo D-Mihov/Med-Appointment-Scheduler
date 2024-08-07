@@ -2,6 +2,7 @@ package com.example.medappointmentscheduler.domain.model;
 
 import com.example.medappointmentscheduler.utils.Validation.ValidDoctorId;
 import com.example.medappointmentscheduler.utils.Validation.ValidEmail;
+import com.example.medappointmentscheduler.utils.Validation.ValidEmailAddAppointment;
 import com.example.medappointmentscheduler.utils.Validation.ValidExperience;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -17,7 +18,7 @@ public class UpdateDoctorModel {
     private String firstName;
     @NotBlank(message = "{signup.doctor.form.lastName.notEmpty}")
     private String lastName;
-    @ValidEmail
+    @ValidEmailAddAppointment
     private String email;
     @NotBlank(message = "{signup.doctor.form.phone.notEmpty}")
     @Pattern(regexp="(^$|[0-9]{10})", message = "{signup.form.phone.invalid}")

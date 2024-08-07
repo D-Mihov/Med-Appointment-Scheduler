@@ -8,14 +8,17 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
 //    @Autowired
@@ -29,30 +32,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http
                 .authorizeHttpRequests()
                 .requestMatchers("/signupDoctor", "/patients/**", "/doctors/**").hasRole("ADMIN")
-                .requestMatchers("/add-appointment", "/getAvailableHours/**", "/appointments/feedback/**").hasRole("PATIENT")
-                .requestMatchers("/doctors").hasRole("DOCTOR")
-                .requestMatchers("/changePassword", "/appointments/**").authenticated()
+                .requestMatchers("/add-appointment", "/api/getAvailableHours/**").hasRole("PATIENT")
+                .requestMatchers("/changePassword", "/appointments/**", "/appointments/feedback/**", "/logout", "/appointments/prescription/**").authenticated()
                 .requestMatchers("/login", "/signup").anonymous()
-                .requestMatchers("/logout", "/", "/css/**", "/js/**", "/img/**", "**/favicon.ico").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/img/**", "**/favicon.ico", "/error").permitAll()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                .anyRequest().authenticated()
                 .and()
-                .formLogin()
-                .loginPage("/login")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                .defaultSuccessUrl("/")
-                .failureHandler(failureHandler)
-                .and()
-                .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .and()
-                .httpBasic();
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/")
+                        .failureHandler(failureHandler)
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler())
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID"))
+                .exceptionHandling();
         return http.build();
     }
 

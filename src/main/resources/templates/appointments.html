@@ -67,6 +67,8 @@
                      th:attr="onclick='return confirm(\'' + #{appointments.confirmation.cancel} + '\')'">Cancel</a>
                   <a class="btn btn-info" style="margin-bottom: 10px"
                      th:href="@{/appointments/feedback(appointmentId=${appointment.id}, doctorId=${appointment.doctor.id}, patientId=${appointment.patient.id})}" th:text="#{appointments.button.feedback}">Feedback</a>
+                    <a class="btn btn-info" style="margin-bottom: 10px"
+                       th:href="@{/appointments/prescription(appointmentId=${appointment.id}, doctorId=${appointment.doctor.id}, patientId=${appointment.patient.id})}" th:text="#{appointments.button.prescription}">Prescription</a>
                   <a class="btn btn-danger" th:href="@{/appointments/delete(id=${appointment.id})}"
                      sec:authorize="hasRole('ADMIN')"
                      th:text="#{appointments.button.delete}"

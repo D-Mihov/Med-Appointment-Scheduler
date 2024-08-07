@@ -18,7 +18,7 @@ public class Doctor extends BaseEntity{
     private String email;
 
     @Column(name = "doctor_id", nullable = false, unique = true)
-    private String doctorID;
+    private String doctorId;
 
     @Column(nullable = false)
     private String phone;
@@ -114,11 +114,11 @@ public class Doctor extends BaseEntity{
     }
 
     public String getDoctorId() {
-        return doctorID;
+        return doctorId;
     }
 
     public Doctor setDoctorId(String doctorId) {
-        this.doctorID = doctorId;
+        this.doctorId = doctorId;
         return this;
     }
 
@@ -128,7 +128,7 @@ public class Doctor extends BaseEntity{
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", doctorID='" + doctorID + '\'' +
+                ", doctorID='" + doctorId + '\'' +
                 ", phone='" + phone + '\'' +
                 ", speciality='" + speciality + '\'' +
                 ", experience=" + experience +
